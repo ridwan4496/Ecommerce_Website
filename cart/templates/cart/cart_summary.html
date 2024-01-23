@@ -1,0 +1,135 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Cart | {% endblock title %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-2">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">PandaMart</h1>
+                <p class="lead fw-normal text-white-50 mb-0">One single place where you can get everything in few simple
+                    clicks</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="container my-5" style="min-height: 60vh;">
+        {% if cart_products %}
+            {% for item in cart_products %}
+                <div class="card mb-5">
+                    <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="{{ item.image.url }}" class="img-fluid rounded-start" alt="Image Not Found">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="fs-2 fw-bold my-3">{{ item.product_name }}</h5>
+                            <div align="justify">
+                                <p class="fs-5 my-4 lh-sm"><span class="fw-semibold">Description: </span>{{ item.description }}</p>
+                            </div>
+                            {% if item.is_sale %}
+                                <span class="fs-5 fw-semibold">Price: </span>
+                                <p class="d-inline fs-5 text-decoration-line-through text-muted">&#2547;{{ item.price }}</p>
+                                <p class="d-inline fs-5">&#2547;{{ item.sale_price }}</p><br>
+                            {% else %}
+                                <span class="fs-5 fw-semibold">Price: </span>
+                                <p class="d-inline fs-5">&#2547;{{ item.price }}</p><br>
+                            {% endif %}
+                            <!-- Select Quantity -->
+                            <div class="row justify-content-left mt-4">
+                                <div class="d-flex flex-row">
+                                    <p class="fs-5 fw-semibold">Selected Quantity:</p>                        
+                                    <div class="col-md-2 mx-3">
+                                        <select class="form-select" id="select{{ item.id }}">  
+                                            
+                                                {% for key, value in quantities.items %}
+                                                    {% if key == item.id|slugify %}
+                                                        <option selected class="fw-bold">{{ value }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                                
+                                            <option class="text-secondary" value="1">1</option>
+                                            <option class="text-secondary" value="2">2</option>
+                                            <option class="text-secondary" value="3">3</option>
+                                            <option class="text-secondary" value="4">4</option>
+                                            <option class="text-secondary" value="5">5</option>
+                                        </select>                                
+                                    </div> 
+                                </div>     
+                            </div>
+                            <div class="d-flex">
+                                <button type="button" data-index="{{ item.id }}" class="btn btn-outline-dark mx-1 my-3 d-inline update-cart"><i class="bi-cart-fill me-1"></i> Update</button>                    
+                                <button type="button" data-index="{{ item.id }}" class="btn btn-outline-dark mx-1 my-3 d-inline delete-product"><i class="bi-cart-fill me-1"></i> Remove</button> 
+                            </div>                                               
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="">
+                <div class="px-5 py-4 bg-light rounded border">
+                    <span class="fs-5 fw-bold">Total Items: </span>
+                    <p class="d-inline fs-5 fw-semibold">{{ cart_products.count }}</p><br>              
+                    <span class="fs-5 fw-bold">Subtotal: </span> 
+                    <p class="d-inline fs-5 fw-semibold"> &#2547;{{ totals }}</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="container" style="height: 55vh;">
+                <h1 class="text-center">You Have No Product in Your Cart.</h1>
+            </div>        
+        {% endif %}
+    </div>
+
+    <script>
+        //update cart
+        $(document).on('click', '.update-cart', function(e){
+            e.preventDefault();
+            //grab product id
+            var productid = $(this).data('index');
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cart_update' %}",
+                data: {
+                    product_id: $(this).data('index'),
+                    product_qty: $('#select' + productid + ' option:selected').text(),
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    action: 'post'
+                }, 
+                success: function(json){
+                    //console.log(json)
+                    location.reload();
+                },
+                error: function(xhr, errmsg, err){
+
+                },
+            });
+        })
+
+        //delete item from cart
+        $(document).on('click', '.delete-product', function(e){
+            e.preventDefault();
+            //grab product id
+            //var productid = $(this).data('index');
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cart_delete' %}",
+                data: {
+                    product_id: $(this).data('index'),                    
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    action: 'post'
+                }, 
+                success: function(json){
+                    //console.log(json)
+                    location.reload();
+                },
+                error: function(xhr, errmsg, err){
+
+                },
+            });
+        })
+    </script>
+
+{% endblock  %}
+

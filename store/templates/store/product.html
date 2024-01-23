@@ -1,0 +1,84 @@
+{% extends 'store/base.html' %}
+
+{% block title %}{{ item.product_name }} | {% endblock title %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-2">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">PandaMart</h1>
+                <p class="lead fw-normal text-white-50 mb-0">One single place where you can get everything in few simple
+                    clicks</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="container my-5">
+        <div class="card mb-3">
+            <div class="row g-0">
+            <div class="col-md-4">
+                <img src="{{ item.image.url }}" class="img-fluid rounded-start" alt="Image Not Found">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h5 class="fs-2 fw-bold my-3">{{ item.product_name }}</h5>
+                    <div align="justify">
+                        <p class="fs-5 my-4 lh-sm"><span class="fs-5 fw-semibold">Description: </span>{{ item.description }}</p>
+                    </div>
+                    {% if item.is_sale %}
+                        <span class="fs-5 fw-semibold">Price: </span>
+                        <p class="d-inline fs-5 text-decoration-line-through text-muted">&#2547;{{ item.price }}</p>
+                        <p class="d-inline fs-5">&#2547;{{ item.sale_price }}</p><br>
+                    {% else %}
+                        <span class="fs-5 fw-semibold">Price: </span>
+                        <p class="d-inline fs-5">&#2547;{{ item.price }}</p><br>
+                    {% endif %}
+                    <!-- Select Quantity -->
+                    <div class="row justify-content-left mt-4">
+                        <div class="d-flex flex-row">
+                            <p class="fs-5 fw-semibold">Select Quantity:</p>                        
+                            <div class="col-md-2 mx-3">
+                                <select class="form-select" id="qty-cart">                        
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>                                
+                            </div> 
+                        </div>     
+                    </div>
+                    <button type="button" value="{{ item.id }}" id="add-cart" class="btn btn-outline-dark my-3"><i class="bi-cart-fill me-1"></i> Add to Cart</button>                    
+                </div>
+            </div>
+            </div>
+        </div>
+    </div><br><br><br><br>
+
+    <script>
+        //check if button is pressed or not
+        $(document).on('click', '#add-cart', function(e){
+            e.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cart_add' %}",
+                data: {
+                    product_id: $('#add-cart').val(),
+                    product_qty: $('#qty-cart option:selected').text(),
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    action: 'post'
+                }, 
+                success: function(json){
+                    //console.log(json)
+                    document.getElementById('cart_quantity').textContent = json.qty
+                    location.reload();
+                },
+                error: function(xhr, errmsg, err){
+
+                },
+            });
+        })
+    </script>
+
+{% endblock  %}
